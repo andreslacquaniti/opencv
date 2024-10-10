@@ -1,0 +1,79 @@
+name: Build OpenCV and Generate .deb Files
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  build-opencv:
+    runs-on: ubuntu-24.04
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v3
+      
+    - name: Set up environment variables
+      run: |
+        sudo apt update
+        sudo apt install -y unzip wget build-essential cmake curl git libgtk2.0-dev pkg-config libavcodec-dev libavformat-dev libswscale-dev libtbb-dev libjpeg-dev libpng-dev libtiff-dev libdc1394-dev
+        export OPENCV_VERSION=4.9.0
+        export TMP_DIR=/tmp/
+        
+    - name: Download OpenCV and OpenCV Contrib
+      run: |
+        mkdir ${TMP_DIR}opencv
+        cd ${TMP_DIR}opencv
+        curl -Lo opencv.zip https://github.com/opencv/opencv/archive/${OPENCV_VERSION}.zip
+        unzip -q opencv.zip
+        curl -Lo opencv_contrib.zip https://github.com/opencv/opencv_contrib/archive/${OPENCV_VERSION}.zip
+        unzip -q opencv_contrib.zip
+
+    - name: Build OpenCV
+      run: |
+        cd ${TMP_DIR}opencv/opencv-${OPENCV_VERSION}
+        mkdir build
+        cd build
+        cmake -D CMAKE_BUILD_TYPE=RELEASE \
+              -D CMAKE_INSTALL_PREFIX=/usr/local \
+              -D BUILD_SHARED_LIBS=ON \
+              -D OPENCV_EXTRA_MODULES_PATH=${TMP_DIR}opencv/opencv_contrib-${OPENCV_VERSION}/modules \
+              -D BUILD_DOCS=OFF \
+              -D BUILD_EXAMPLES=OFF \
+              -D BUILD_TESTS=OFF \
+              -D BUILD_PERF_TESTS=ON \
+              -D BUILD_opencv_java=NO \
+              -D BUILD_opencv_python=NO \
+              -D BUILD_opencv_python2=NO \
+              -D BUILD_opencv_python3=NO \
+              -D WITH_JASPER=OFF \
+              -D WITH_TBB=ON \
+              -DOPENCV_GENERATE_PKGCONFIG=ON \
+              -D OPENCV_ENABLE_NONFREE=ON \
+              -D BUILD_opencv_apps=ON \
+              -D CPACK_BINARY_DEB=ON \
+              -D CPACK_GENERATOR=DEB \
+              -D OPENCV_VCSVERSION=${OPENCV_VERSION} ..
+        make -j $(nproc --all)
+
+    - name: Install OpenCV
+      run: |
+        cd ${TMP_DIR}opencv/opencv-${OPENCV_VERSION}/build
+        sudo make preinstall
+        sudo make install
+
+    - name: Generate .deb Packages
+      run: |
+        cd ${TMP_DIR}opencv/opencv-${OPENCV_VERSION}/build
+        cpack -G DEB
+        ls -lsa *.deb
+
+    - name: Upload .deb files as artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: opencv-deb-packages
+        path: /tmp/opencv/opencv-4.9.0/build/*.deb
