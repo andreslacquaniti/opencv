@@ -26,6 +26,8 @@ jobs:
         
     - name: Download OpenCV and OpenCV Contrib
       run: |
+        export OPENCV_VERSION=4.9.0
+        export TMP_DIR=/tmp/
         mkdir ${TMP_DIR}opencv
         cd ${TMP_DIR}opencv
         curl -Lo opencv.zip https://github.com/opencv/opencv/archive/${OPENCV_VERSION}.zip
@@ -35,6 +37,8 @@ jobs:
 
     - name: Build OpenCV
       run: |
+        export OPENCV_VERSION=4.9.0
+        export TMP_DIR=/tmp/
         cd ${TMP_DIR}opencv/opencv-${OPENCV_VERSION}
         mkdir build
         cd build
@@ -62,12 +66,16 @@ jobs:
 
     - name: Install OpenCV
       run: |
+        export OPENCV_VERSION=4.9.0
+        export TMP_DIR=/tmp/
         cd ${TMP_DIR}opencv/opencv-${OPENCV_VERSION}/build
         sudo make preinstall
         sudo make install
 
     - name: Generate .deb Packages
       run: |
+        export OPENCV_VERSION=4.9.0
+        export TMP_DIR=/tmp/
         cd ${TMP_DIR}opencv/opencv-${OPENCV_VERSION}/build
         cpack -G DEB
         ls -lsa *.deb
