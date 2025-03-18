@@ -81,7 +81,7 @@ jobs:
         ls -lsa *.deb
 
     - name: Upload .deb files as artifact
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: opencv-deb-packages
         path: /tmp/opencv/opencv-4.11.0/build/*.deb
