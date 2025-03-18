@@ -37,7 +37,7 @@ jobs:
 
     - name: Build OpenCV
       run: |
-        export OPENCV_VERSION=4.9.0
+        export OPENCV_VERSION=4.11.0
         export TMP_DIR=/tmp/
         cd ${TMP_DIR}opencv/opencv-${OPENCV_VERSION}
         mkdir build
@@ -84,4 +84,4 @@ jobs:
       uses: actions/upload-artifact@v3
       with:
         name: opencv-deb-packages
-        path: /tmp/opencv/opencv-4.9.0/build/*.deb
+        path: /tmp/opencv/opencv-4.11.0/build/*.deb
